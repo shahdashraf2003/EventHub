@@ -1,3 +1,4 @@
+import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/bottom_sheet.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/image_slider.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void nextPage() {
     if (isLastPage) {
-     
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SignInScreen()),
+        );
     } else {
       _controller.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -48,6 +52,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void skip() {
+     Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SignInScreen()),
+        );
   }
 
   @override
