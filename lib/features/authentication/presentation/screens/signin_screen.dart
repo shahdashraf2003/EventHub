@@ -13,7 +13,6 @@ class SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -98,7 +97,7 @@ class SignInScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 20),
-              AuthPrimaryButton(label: "SIGN IN", onPressed: () {}),
+              AuthPrimaryButton(label: "SIGN IN", onPressed: () => {}),
               const SizedBox(height: 24),
               const OrDivider(),
               const SizedBox(height: 16),

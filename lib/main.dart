@@ -14,10 +14,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Event Hub',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-        ),
-      ),
+  useMaterial3: true,
+  scaffoldBackgroundColor: Colors.white,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: Colors.deepPurple,
+    surface: Colors.white,
+  ),
+  canvasColor: Colors.white,
+),
+       
+      
       home: const SplashScreen(),
     );
   }
