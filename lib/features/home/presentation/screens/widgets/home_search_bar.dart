@@ -1,3 +1,4 @@
+import 'package:event_hub/features/search/presentation/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeSearchBar extends StatelessWidget {
@@ -22,7 +23,16 @@ class HomeSearchBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
-              onChanged: onChanged,
+            onTap: onChanged != null
+                ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SearchScreen(),
+                      ),
+                    );
+                  }
+                : null,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: "Search...",

@@ -75,7 +75,8 @@ class HomeBottomNavBar extends StatelessWidget {
               Positioned(
                 top: 0,
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                  },
                   child: Container(
                     width: 50,
                     height: 50,
@@ -90,8 +91,7 @@ class HomeBottomNavBar extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child:
-                        const Icon(Icons.add, color: Colors.white, size: 26),
+                    child: const Icon(Icons.add, color: Colors.white, size: 26),
                   ),
                 ),
               ),

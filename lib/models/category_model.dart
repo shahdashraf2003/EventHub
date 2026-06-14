@@ -4,11 +4,11 @@ class CategoryModel {
 
   final String label;
   final String emoji;
-  final Color color;
+  final Color? color;
 
   CategoryModel({
     required this.label,
     required this.emoji,
-    required this.color,
+     this.color=const Color(0xFF5669FF),
   });
 }
