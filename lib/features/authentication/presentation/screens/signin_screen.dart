@@ -1,9 +1,10 @@
 import 'package:event_hub/features/authentication/presentation/screens/signup_screen.dart';
-import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_primary_button.dart';
+import 'package:event_hub/core/widgets/blue_primary_button.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_redirect_text.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_text_field.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/or_divider.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/social_login_button.dart';
+import 'package:event_hub/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
 
@@ -97,7 +98,12 @@ class SignInScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 20),
-              AuthPrimaryButton(label: "SIGN IN", onPressed: () => {}),
+              BluePrimaryButton(label: "SIGN IN", onPressed: () => {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    )
+              }),
               const SizedBox(height: 24),
               const OrDivider(),
               const SizedBox(height: 16),

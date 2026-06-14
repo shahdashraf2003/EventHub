@@ -1,4 +1,4 @@
-import 'package:event_hub/features/events/models/event_model.dart';
+import 'package:event_hub/models/event_model.dart';
 import 'package:flutter/material.dart';
 
 class EventDetailsAppBar extends StatelessWidget {
@@ -20,7 +20,7 @@ class EventDetailsAppBar extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.35),
+            color: Colors.black.withValues(alpha: 0.35),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -33,7 +33,7 @@ class EventDetailsAppBar extends StatelessWidget {
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.35),
+            color: Colors.black.withValues(alpha: 0.35),
             shape: BoxShape.circle,
           ),
           child: IconButton(

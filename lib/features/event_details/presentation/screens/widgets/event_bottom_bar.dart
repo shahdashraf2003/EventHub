@@ -1,5 +1,5 @@
-import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_primary_button.dart';
-import 'package:event_hub/features/events/models/event_model.dart';
+import 'package:event_hub/core/widgets/blue_primary_button.dart';
+import 'package:event_hub/models/event_model.dart';
 import 'package:flutter/material.dart';
 
 class EventBottomBar extends StatelessWidget {
@@ -15,7 +15,7 @@ class EventBottomBar extends StatelessWidget {
       right: 0,
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-        child: AuthPrimaryButton(
+        child: BluePrimaryButton(
           label:
               "BUY TICKET \$${event.ticketPrice.toStringAsFixed(0)}",
           onPressed: () {},

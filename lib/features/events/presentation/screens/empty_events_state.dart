@@ -1,4 +1,4 @@
-import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_primary_button.dart';
+import 'package:event_hub/core/widgets/blue_primary_button.dart';
 import 'package:flutter/material.dart';
 
 class EmptyEventsState extends StatelessWidget {
@@ -52,7 +52,7 @@ class EmptyEventsState extends StatelessWidget {
 
           const SizedBox(height: 40),
 
-          AuthPrimaryButton(
+          BluePrimaryButton(
             label: "Explore Events",
             onPressed: onExplore,
           ),

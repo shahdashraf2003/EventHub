@@ -1,8 +1,5 @@
-import 'package:event_hub/features/events/models/event_model.dart';
-import 'package:event_hub/features/event_details/presentation/screens/event_details_screen.dart';
-import 'package:event_hub/features/events/presentation/screens/event_screen.dart';
+import 'package:event_hub/features/splash/presentation/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'features/splash/presentation/screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +24,7 @@ class MyApp extends StatelessWidget {
 ),
        
       
-      home: EventsScreen()
+      home: SplashScreen()
     );
   }
 }

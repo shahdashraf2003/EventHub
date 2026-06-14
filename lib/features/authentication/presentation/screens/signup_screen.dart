@@ -1,4 +1,4 @@
-import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_primary_button.dart';
+import 'package:event_hub/core/widgets/blue_primary_button.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_redirect_text.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_text_field.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/or_divider.dart';
@@ -67,7 +67,7 @@ class SignUpScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 24),
-              AuthPrimaryButton(label: "SIGN UP", onPressed: () {}),
+              BluePrimaryButton(label: "SIGN UP", onPressed: () {}),
 
               const SizedBox(height: 24),
               const OrDivider(),

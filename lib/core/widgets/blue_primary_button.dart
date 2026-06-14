@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class AuthPrimaryButton extends StatelessWidget {
+class BluePrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
 
-  const AuthPrimaryButton({
+  const BluePrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -41,7 +41,7 @@ class AuthPrimaryButton extends StatelessWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withValues(alpha: 0.25),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.arrow_forward, size: 16),
