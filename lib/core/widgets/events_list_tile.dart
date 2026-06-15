@@ -1,6 +1,38 @@
 import 'package:event_hub/models/event_model.dart';
 import 'package:flutter/material.dart';
 
+Widget _tileImage(String src) {
+  const size = 70.0;
+  const placeholder = SizedBox(
+    width: size,
+    height: size,
+    child: ColoredBox(
+      color: Color(0xFFEEEEEE),
+      child: Icon(Icons.image_outlined, color: Color(0xFF5669FF), size: 28),
+    ),
+  );
+  if (src.startsWith('http')) {
+    return Image.network(
+      src,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorBuilder: (ctx, err, stack) => placeholder,
+      loadingBuilder: (ctx, child, progress) => progress == null ? child : placeholder,
+    );
+  }
+  if (src.isNotEmpty) {
+    return Image.asset(
+      src,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorBuilder: (ctx, err, stack) => placeholder,
+    );
+  }
+  return placeholder;
+}
+
 class EventListTile extends StatelessWidget {
   final EventModel event;
   final VoidCallback onTap;
@@ -33,19 +65,7 @@ class EventListTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                event.coverImage,
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
-                  width: 70,
-                  height: 70,
-                  color: const Color.fromARGB(255, 1, 1, 2),
-                  child: const Icon(Icons.image_outlined,
-                      color: Color(0xFF5669FF), size: 28),
-                ),
-              ),
+              child: _tileImage(event.coverImage),
             ),
 
             const SizedBox(width: 14),
@@ -55,7 +75,7 @@ class EventListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    event.date,
+                    event.date.toString().split(' ')[0],
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF5669FF),

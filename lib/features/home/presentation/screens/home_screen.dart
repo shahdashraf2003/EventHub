@@ -9,56 +9,14 @@ import 'package:event_hub/features/home/presentation/screens/widgets/home_search
 import 'package:event_hub/features/home/presentation/screens/widgets/invite_friends_banner.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/section_header.dart';
 import 'package:event_hub/features/profile/presentation/screens/organizer_profile_screen.dart';
-import 'package:event_hub/features/search/presentation/screens/search_screen.dart' show SearchScreen;
+import 'package:event_hub/features/search/presentation/screens/search_screen.dart'
+    show SearchScreen;
 import 'package:event_hub/models/category_model.dart';
 import 'package:event_hub/models/event_model.dart';
 import 'package:event_hub/models/organizer_model.dart';
 import 'package:event_hub/models/review_model.dart';
+import 'package:event_hub/services/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
-
-final List<EventModel> sampleUpcomingEvents = [
-  EventModel(
-    id: '1',
-    title: 'International Band Mu...',
-    day: '10',
-    date: 'JUNE',
-    location: '36 Guild Street London, UK',
-    goingCount: 20,
-    goingAvatars: [],
-    coverImage: 'assets/images/upcoming1.png',
-    time: '7:00 PM',
-    address: '36 Guild Street London, UK',
-    organizer: 'Event Organizer',
-    organizerImage: '',
-    about: 'International Band Music Event',
-    ticketPrice: 50.0,
-    description: 'Join us for an amazing international band performance.',
-  ),
-  EventModel(
-    id: '2',
-    title: 'Jo Malone',
-    day: '10',
-    date: 'JUNE',
-    location: 'Radius Gal...',
-    goingCount: 20,
-    goingAvatars: [],
-    coverImage: 'assets/images/upcoming2.png',
-    time: '8:00 PM',
-    address: 'Radius Gallery',
-    organizer: 'Gallery Host',
-    organizerImage: '',
-    about: 'Jo Malone Exhibition',
-    ticketPrice: 30.0,
-    description: 'Experience the Jo Malone exhibition.',
-  ),
-];
-
-final List<CategoryModel> sampleCategories = [
-  CategoryModel(label: 'Sports', emoji: '🏀', color: Color(0xFFFF6B6B)),
-  CategoryModel(label: 'Music', emoji: '🎵', color: Color(0xFFFF9500)),
-  CategoryModel(label: 'Food', emoji: '✖', color: Color(0xFF4CAF50)),
-  CategoryModel(label: 'Art', emoji: '🎨', color: Color(0xFF5669FF)),
-];
 
 const _organizer = OrganizerModel(
   name: 'David Silbia',
@@ -85,8 +43,8 @@ const _profileEvents = [
     organizer: 'David Silbia',
     organizerImage: '',
     about: '',
-    ticketPrice: 0,
     description: '',
+    ticketPrice: 0,
   ),
 ];
 
@@ -117,11 +75,85 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0;
 
+  final _service = TicketmasterService.instance;
+
+  List<CategoryModel> _categories = [];
+  List<EventModel> _upcomingEvents = [];
+  List<EventModel> _nearbyEvents = [];
+  bool _loadingCategories = true;
+  bool _loadingEvents = true;
+  String? _eventsError;
+  String? _selectedClassificationId;
+  int _selectedCategoryIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+    _loadEvents();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final cats = await _service.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = cats.isEmpty ? [] : cats;
+          _loadingCategories = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _categories = [];
+          _loadingCategories = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadEvents({String? classificationId}) async {
+    setState(() {
+      _loadingEvents = true;
+      _eventsError = null;
+    });
+    try {
+      final upcoming = await _service.getEvents(
+        classificationId: classificationId,
+        page: 0,
+      );
+      final nearby = await _service.getEvents(
+        classificationId: classificationId,
+        page: 1,
+      );
+      if (mounted) {
+        setState(() {
+          _upcomingEvents = upcoming;
+          _nearbyEvents = nearby;
+          _loadingEvents = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _eventsError = 'Could not load events. Check your connection.';
+          _loadingEvents = false;
+        });
+      }
+    }
+  }
+
+  void _onCategorySelected(int index) {
+    if (index == _selectedCategoryIndex) return;
+    setState(() => _selectedCategoryIndex = index);
+    _loadEvents(classificationId: _selectedClassificationId);
+  }
+
   void _onNavTap(int index) {
     if (index == _navIndex) return;
 
     switch (index) {
-      case 3: 
+      case 3:
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -140,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (_) => const EventsScreen()),
         ).then((_) => setState(() => _navIndex = 0));
         return;
-
     }
 
     setState(() => _navIndex = index);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -154,103 +186,195 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _navIndex,
         onTap: _onNavTap,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF5669FF),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
+      body: RefreshIndicator(
+        color: const Color(0xFF5669FF),
+        onRefresh: () async {
+          await Future.wait([_loadCategories(), _loadEvents()]);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFF5669FF),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
+                  ),
+                ),
+                padding:
+                    const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                child: Column(
+                  children: [
+                    HomeAppBar(
+                      location: 'New York, USA',
+                      onMenuTap: () {},
+                      onNotificationTap: () {},
+                    ),
+                    const SizedBox(height: 14),
+                    HomeSearchBar(
+                      onFilterTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FilterBottomSheet(),
+                          ),
+                        );
+                      },
+                      onChanged: (value) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SearchScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-              child: Column(
-                children: [
-                  HomeAppBar(
-                    location: "New York, USA",
-                    onMenuTap: () {},
-                    onNotificationTap: () {},
-                  ),
-                  const SizedBox(height: 14),
-                  HomeSearchBar(
-                    onFilterTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const FilterBottomSheet(),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            SliverToBoxAdapter(
+              child: _loadingCategories
+                  ? const SizedBox(
+                      height: 42,
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF5669FF),
+                          ),
                         ),
-                      );
-                    },
-                    onChanged: (value) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SearchScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    )
+                  : CategoryChipList(
+                      categories: _categories,
+                      onSelected: _onCategorySelected,
+                    ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Upcoming Events',
+                onSeeAll: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EventsScreen()),
+                  );
+                },
               ),
             ),
-          ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
-          SliverToBoxAdapter(
-            child: CategoryChipList(
-              categories: sampleCategories,
-              onSelected: (_) {},
+            SliverToBoxAdapter(child: _buildUpcomingSection()),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            SliverToBoxAdapter(
+              child: InviteFriendsBanner(onInvite: () {}),
             ),
-          ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          SliverToBoxAdapter(
-            child: SectionHeader(
-              title: "Upcoming Events",
-              onSeeAll: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EventsScreen()),
-                );
-              },
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Nearby You',
+                onSeeAll: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EventsScreen()),
+                  );
+                },
+              ),
             ),
-          ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
-          SliverToBoxAdapter(
-            child: EventCardList(
-              events: sampleUpcomingEvents,
-              onEventTap: (event) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EventDetailsScreen(event: event),
-                  ),
-                );
-              },
-            ),
-          ),
+            SliverToBoxAdapter(child: _buildNearbySection()),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          SliverToBoxAdapter(
-            child: InviteFriendsBanner(onInvite: () {}),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          SliverToBoxAdapter(
-            child: SectionHeader(title: "Nearby You", onSeeAll: () {}),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
-        ],
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildUpcomingSection() {
+    if (_loadingEvents) {
+      return const SizedBox(
+        height: 240,
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFF5669FF)),
+        ),
+      );
+    }
+    if (_eventsError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          _eventsError!,
+          style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+        ),
+      );
+    }
+    if (_upcomingEvents.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          'No upcoming events found.',
+          style: TextStyle(color: Color(0xFF888888), fontSize: 14),
+        ),
+      );
+    }
+    return EventCardList(
+      events: _upcomingEvents,
+      onEventTap: (event) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailsScreen(event: event),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNearbySection() {
+    if (_loadingEvents) {
+      return const SizedBox(
+        height: 100,
+        child: Center(
+          child: CircularProgressIndicator(color: Color(0xFF5669FF)),
+        ),
+      );
+    }
+    if (_nearbyEvents.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          'No nearby events found.',
+          style: TextStyle(color: Color(0xFF888888), fontSize: 14),
+        ),
+      );
+    }
+    return EventCardList(
+      events: _nearbyEvents,
+      onEventTap: (event) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailsScreen(event: event),
+          ),
+        );
+      },
     );
   }
 }

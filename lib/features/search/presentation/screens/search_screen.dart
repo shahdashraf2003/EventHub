@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:event_hub/core/widgets/events_list_tile.dart';
-import 'package:event_hub/features/events/presentation/screens/event_screen.dart';
-import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart' show FilterBottomSheet;
+import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart'
+show FilterBottomSheet;
 import 'package:event_hub/features/search/presentation/screens/widgets/search_input_bar.dart';
 import 'package:event_hub/models/event_model.dart';
+import 'package:event_hub/services/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -13,23 +16,57 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final _service = TicketmasterService.instance;
   final TextEditingController _controller = TextEditingController();
-  List<EventModel> _results = sampleSearchEvents;
 
-  void _onSearch(String query) {
-    setState(() {
-      _results = sampleSearchEvents
-          .where((e) =>
-              e.title.toLowerCase().contains(query.toLowerCase()) ||
-              e.location.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
+  List<EventModel> _results = [];
+  bool _loading = false;
+  bool _hasSearched = false;
+  String? _error;
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load a default set of events on open
+    _fetchEvents('');
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  Future<void> _fetchEvents(String keyword) async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final results = await _service.getEvents(
+        keyword: keyword.isEmpty ? null : keyword,
+      );
+      if (mounted) {
+        setState(() {
+          _results = results;
+          _loading = false;
+          _hasSearched = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Search failed. Please try again.';
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  void _onSearch(String query) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _fetchEvents(query.trim());
+    });
   }
 
   @override
@@ -41,7 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
         elevation: 0,
         leading: const BackButton(color: Color(0xFF222222)),
         title: const Text(
-          "Search",
+          'Search',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -63,24 +100,47 @@ class _SearchScreenState extends State<SearchScreen> {
 
           const SizedBox(height: 8),
 
-          Expanded(
-            child: _results.isEmpty
-                ? const Center(
-                    child: Text(
-                      "No events found",
-                      style: TextStyle(color: Color(0xFF888888), fontSize: 15),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _results.length,
-                    itemBuilder: (_, i) => EventListTile(
-                      event: _results[i],
-                      onTap: () {},
-                    ),
-                  ),
-          ),
+          Expanded(child: _buildBody()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF5669FF)),
+      );
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => _fetchEvents(_controller.text.trim()),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_hasSearched && _results.isEmpty) {
+      return const Center(
+        child: Text(
+          'No events found',
+          style: TextStyle(color: Color(0xFF888888), fontSize: 15),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _results.length,
+      itemBuilder: (_, i) => EventListTile(
+        event: _results[i],
+        onTap: () {},
       ),
     );
   }

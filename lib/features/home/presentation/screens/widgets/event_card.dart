@@ -1,6 +1,31 @@
 import 'package:event_hub/models/event_model.dart';
 import 'package:flutter/material.dart';
 
+Widget _eventImage(String src, {double? height, double? width, BoxFit fit = BoxFit.cover}) {
+  const placeholder = ColoredBox(color: Color(0xFFEEEEEE));
+  if (src.startsWith('http')) {
+    return Image.network(
+      src,
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (ctx, err, stack) => SizedBox(height: height, width: width, child: placeholder),
+      loadingBuilder: (ctx, child, progress) =>
+          progress == null ? child : SizedBox(height: height, width: width, child: placeholder),
+    );
+  }
+  if (src.isNotEmpty) {
+    return Image.asset(
+      src,
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (ctx, err, stack) => SizedBox(height: height, width: width, child: placeholder),
+    );
+  }
+  return SizedBox(height: height, width: width, child: placeholder);
+}
+
 class EventCard extends StatelessWidget {
   final EventModel event;
   final VoidCallback onTap;
@@ -32,17 +57,7 @@ class EventCard extends StatelessWidget {
                   const BorderRadius.vertical(top: Radius.circular(16)),
               child: Stack(
                 children: [
-                  Image.asset(
-                    event.coverImage,
-                    height: 130,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      height: 130,
-                      color: const Color(0xFFFFD0C0),
-                    ),
-                  ),
-                  // Date badge
+                  _eventImage(event.coverImage, height: 130, width: double.infinity),
                   Positioned(
                     top: 10,
                     left: 10,
