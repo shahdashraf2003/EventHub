@@ -1,4 +1,5 @@
 import 'package:event_hub/core/widgets/events_list_tile.dart';
+import 'package:event_hub/features/event_details/presentation/screens/event_details_screen.dart';
 import 'package:event_hub/features/events/presentation/screens/empty_events_state.dart';
 import 'package:event_hub/features/events/presentation/screens/event_tab_selector.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/category_chip.dart';
@@ -7,11 +8,11 @@ import 'package:event_hub/models/event_model.dart';
 import 'package:event_hub/services/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
-final List<CategoryModel> filterCategories = [
-  CategoryModel(label: 'Music', emoji: '🎵', color: const Color(0xFF5669FF)),
-  CategoryModel(label: 'Art', emoji: '🎨', color: const Color(0xFF4CAF50)),
-  CategoryModel(label: 'Food', emoji: '🍽️', color: const Color(0xFF2196F3)),
-  CategoryModel(label: 'Tech', emoji: '💻', color: const Color(0xFF9C27B0)),
+final List<CategoryModel> _filterCategories = [
+  CategoryModel(label: 'Music',  emoji: '🎵', color: const Color(0xFF5669FF)),
+  CategoryModel(label: 'Art',    emoji: '🎨', color: const Color(0xFF4CAF50)),
+  CategoryModel(label: 'Sports', emoji: '🏀', color: const Color(0xFFFF6B6B)),
+  CategoryModel(label: 'Tech',   emoji: '💻', color: const Color(0xFF9C27B0)),
 ];
 
 class EventsScreen extends StatefulWidget {
@@ -23,11 +24,12 @@ class EventsScreen extends StatefulWidget {
 
 class _EventsScreenState extends State<EventsScreen> {
   final _service = TicketmasterService.instance;
-
   int _selectedTab = 0;
+
   List<EventModel> _events = [];
   bool _loading = true;
   String? _error;
+  static const String _city = 'New York';
 
   @override
   void initState() {
@@ -38,13 +40,22 @@ class _EventsScreenState extends State<EventsScreen> {
   Future<void> _loadEvents() async {
     setState(() {
       _loading = true;
-      _error = null;
+      _error   = null;
     });
     try {
-      final events = await _service.getEvents(page: _selectedTab == 0 ? 0 : 2);
+      final List<EventModel> events;
+
+      if (_selectedTab == 0) {
+        events = await _service.getUpcomingEvents(city: _city, page: 0);
+      } else {
+        events = await _service.getPastEvents(city: _city);
+      }
+
       if (mounted) setState(() { _events = events; _loading = false; });
     } catch (e) {
-      if (mounted) setState(() { _error = 'Failed to load events.'; _loading = false; });
+      if (mounted) {
+        setState(() { _error = 'Failed to load events. Tap retry.'; _loading = false; });
+      }
     }
   }
 
@@ -78,18 +89,20 @@ class _EventsScreenState extends State<EventsScreen> {
             child: EventTabSelector(
               selectedIndex: _selectedTab,
               onTabChanged: (i) {
+                if (i == _selectedTab) return;
                 setState(() => _selectedTab = i);
                 _loadEvents();
               },
             ),
           ),
 
-          // Category filter chips
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: CategoryChipList(
-              categories: filterCategories,
-              onSelected: (_) {},
+              categories: _filterCategories,
+              onSelected: (_) {
+              
+              },
             ),
           ),
 
@@ -128,7 +141,12 @@ class _EventsScreenState extends State<EventsScreen> {
         itemCount: _events.length,
         itemBuilder: (_, i) => EventListTile(
           event: _events[i],
-          onTap: () {},
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EventDetailsScreen(event: _events[i]),
+            ),
+          ),
         ),
       ),
     );

@@ -77,19 +77,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _service = TicketmasterService.instance;
 
+  final String _city = 'New York';
+
   List<CategoryModel> _categories = [];
   List<EventModel> _upcomingEvents = [];
   List<EventModel> _nearbyEvents = [];
   bool _loadingCategories = true;
   bool _loadingEvents = true;
   String? _eventsError;
-  String? _selectedClassificationId;
   int _selectedCategoryIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    // Endpoint 1: /events.json?city=New York&sort=date,asc&size=20&page=0
     _loadEvents();
   }
 
@@ -112,31 +114,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Loads upcoming events using endpoint 1.
+  /// When a category chip is selected, [classificationId] is forwarded.
   Future<void> _loadEvents({String? classificationId}) async {
     setState(() {
       _loadingEvents = true;
       _eventsError = null;
     });
     try {
-      final upcoming = await _service.getEvents(
-        classificationId: classificationId,
+      // Upcoming: page 0  (endpoint 1 — sort=date,asc)
+      final upcoming = await _service.getUpcomingEvents(
+        city: _city,
         page: 0,
-      );
-      final nearby = await _service.getEvents(
         classificationId: classificationId,
+      );
+      // Nearby: page 1 (same endpoint, next page)
+      final nearby = await _service.getUpcomingEvents(
+        city: _city,
         page: 1,
+        classificationId: classificationId,
       );
       if (mounted) {
         setState(() {
           _upcomingEvents = upcoming;
-          _nearbyEvents = nearby;
-          _loadingEvents = false;
+          _nearbyEvents   = nearby;
+          _loadingEvents  = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _eventsError = 'Could not load events. Check your connection.';
+          _eventsError   = 'Could not load events. Check your connection.';
           _loadingEvents = false;
         });
       }
@@ -146,7 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onCategorySelected(int index) {
     if (index == _selectedCategoryIndex) return;
     setState(() => _selectedCategoryIndex = index);
-    _loadEvents(classificationId: _selectedClassificationId);
+    // Derive classificationId from the selected category and reload
+    final catId = index < _categories.length ? _categories[index].id : null;
+    _loadEvents(classificationId: catId);
   }
 
   void _onNavTap(int index) {

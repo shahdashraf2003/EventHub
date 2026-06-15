@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:event_hub/core/widgets/events_list_tile.dart';
+import 'package:event_hub/features/event_details/presentation/screens/event_details_screen.dart';
 import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart'
-show FilterBottomSheet;
+    show FilterBottomSheet;
 import 'package:event_hub/features/search/presentation/screens/widgets/search_input_bar.dart';
 import 'package:event_hub/models/event_model.dart';
 import 'package:event_hub/services/ticketmaster_service.dart';
@@ -16,20 +17,19 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _service = TicketmasterService.instance;
-  final TextEditingController _controller = TextEditingController();
+  final _service    = TicketmasterService.instance;
+  final _controller = TextEditingController();
 
-  List<EventModel> _results = [];
-  bool _loading = false;
-  bool _hasSearched = false;
+  List<EventModel> _results  = [];
+  bool _loading              = false;
+  bool _hasSearched          = false;
   String? _error;
   Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    // Load a default set of events on open
-    _fetchEvents('');
+    _browseFeatured();
   }
 
   @override
@@ -39,23 +39,40 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchEvents(String keyword) async {
+  Future<void> _browseFeatured() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final results = await _service.getEvents(
-        keyword: keyword.isEmpty ? null : keyword,
-      );
+      final results = await _service.getUpcomingEvents(city: 'New York');
       if (mounted) {
         setState(() {
-          _results = results;
-          _loading = false;
-          _hasSearched = true;
+          _results      = results;
+          _loading      = false;
+          _hasSearched  = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() { _error = 'Could not load events.'; _loading = false; });
+    }
+  }
+
+  Future<void> _searchByKeyword(String keyword) async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final results = keyword.isEmpty
+          ? await _service.getUpcomingEvents(city: 'New York')
+          : await _service.searchByKeyword(keyword: keyword);
+
+      if (mounted) {
+        setState(() {
+          _results      = results;
+          _loading      = false;
+          _hasSearched  = true;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Search failed. Please try again.';
+          _error   = 'Search failed. Please try again.';
           _loading = false;
         });
       }
@@ -65,7 +82,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onSearch(String query) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
-      _fetchEvents(query.trim());
+      _searchByKeyword(query.trim());
     });
   }
 
@@ -120,7 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: () => _fetchEvents(_controller.text.trim()),
+              onPressed: () => _searchByKeyword(_controller.text.trim()),
               child: const Text('Retry'),
             ),
           ],
@@ -140,7 +157,12 @@ class _SearchScreenState extends State<SearchScreen> {
       itemCount: _results.length,
       itemBuilder: (_, i) => EventListTile(
         event: _results[i],
-        onTap: () {},
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailsScreen(event: _results[i]),
+          ),
+        ),
       ),
     );
   }

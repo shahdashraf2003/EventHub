@@ -1,13 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:event_hub/core/config/api_config.dart';
 
-
 class TicketmasterApiClient {
   TicketmasterApiClient._() {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConfig.ticketmasterBaseUrl,
-        queryParameters: {'apikey': ApiConfig.ticketmasterApiKey, 'locale': 'en-us'},
+        queryParameters: {
+          'apikey': ApiConfig.ticketmasterApiKey,
+          'locale': 'en-us',
+        },
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
       ),
@@ -22,21 +24,36 @@ class TicketmasterApiClient {
 
   late final Dio _dio;
 
-  
   Future<Map<String, dynamic>> fetchEvents({
     String? keyword,
+    String? city,
+    String? classificationName,
     String? classificationId,
+    String? startDateTime,
+    String? endDateTime,
+    String sort = 'date,asc',
     int page = 0,
     int size = 20,
   }) async {
     final params = <String, dynamic>{
-      'page': page,
+      'sort': sort,
       'size': size,
-      'sort': 'date,asc',
+      'page': page,
     };
+
     if (keyword != null && keyword.isNotEmpty) params['keyword'] = keyword;
+    if (city != null && city.isNotEmpty) params['city'] = city;
+    if (classificationName != null && classificationName.isNotEmpty) {
+      params['classificationName'] = classificationName;
+    }
     if (classificationId != null && classificationId.isNotEmpty) {
       params['classificationId'] = classificationId;
+    }
+    if (startDateTime != null && startDateTime.isNotEmpty) {
+      params['startDateTime'] = startDateTime;
+    }
+    if (endDateTime != null && endDateTime.isNotEmpty) {
+      params['endDateTime'] = endDateTime;
     }
 
     final response = await _dio.get<Map<String, dynamic>>(

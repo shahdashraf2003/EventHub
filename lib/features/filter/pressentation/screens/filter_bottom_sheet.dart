@@ -1,7 +1,15 @@
-import 'package:event_hub/features/events/presentation/screens/event_screen.dart';
 import 'package:event_hub/features/filter/pressentation/screens/widgets/filter_time_chip.dart';
 import 'package:event_hub/features/search/presentation/screens/widgets/filter_category_button.dart';
+import 'package:event_hub/models/category_model.dart';
 import 'package:flutter/material.dart';
+
+final _filterCategories = [
+  CategoryModel(label: 'Music',  emoji: '🎵'),
+  CategoryModel(label: 'Sports', emoji: '🏀'),
+  CategoryModel(label: 'Food',   emoji: '🍽️'),
+  CategoryModel(label: 'Art',    emoji: '🎨'),
+  CategoryModel(label: 'Tech',   emoji: '💻'),
+];
 
 class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});
@@ -67,10 +75,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 height: 80,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: filterCategories.length,
+                  itemCount: _filterCategories.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 16),
                   itemBuilder: (_, i) => FilterCategoryButton(
-                    category: filterCategories[i],
+                    category: _filterCategories[i],
                     isSelected: _selectedCategory == i,
                     onTap: () => setState(() => _selectedCategory = i),
                   ),
