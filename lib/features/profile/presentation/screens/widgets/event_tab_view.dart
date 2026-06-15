@@ -1,5 +1,5 @@
 import 'package:event_hub/core/widgets/events_list_tile.dart';
-import 'package:event_hub/models/event_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
 import 'package:flutter/material.dart';
 
 class EventTabView extends StatelessWidget {

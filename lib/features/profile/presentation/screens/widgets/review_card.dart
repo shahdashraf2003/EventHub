@@ -1,6 +1,6 @@
 import 'package:event_hub/core/app_colors.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/star_rating.dart';
-import 'package:event_hub/models/review_model.dart';
+import 'package:event_hub/model/entities/review_model.dart';
 import 'package:flutter/material.dart';
 
 class ReviewCard extends StatelessWidget {

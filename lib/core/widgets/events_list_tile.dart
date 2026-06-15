@@ -1,4 +1,4 @@
-import 'package:event_hub/models/event_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
 import 'package:flutter/material.dart';
 
 Widget _tileImage(String src) {

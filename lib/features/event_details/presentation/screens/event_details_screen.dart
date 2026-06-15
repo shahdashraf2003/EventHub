@@ -1,6 +1,6 @@
 import 'package:event_hub/features/event_details/presentation/screens/widgets/event_bottom_bar.dart';
 import 'package:event_hub/features/event_details/presentation/screens/widgets/event_scroll_content.dart';
-import 'package:event_hub/models/event_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
 import 'package:flutter/material.dart';
 
 class EventDetailsScreen extends StatelessWidget {

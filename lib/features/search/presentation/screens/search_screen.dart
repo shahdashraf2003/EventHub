@@ -5,8 +5,8 @@ import 'package:event_hub/features/event_details/presentation/screens/event_deta
 import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart'
     show FilterBottomSheet;
 import 'package:event_hub/features/search/presentation/screens/widgets/search_input_bar.dart';
-import 'package:event_hub/models/event_model.dart';
-import 'package:event_hub/services/ticketmaster_service.dart';
+import 'package:event_hub/model/entities/event_model.dart';
+import 'package:event_hub/model/network/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {

@@ -11,11 +11,11 @@ import 'package:event_hub/features/home/presentation/screens/widgets/section_hea
 import 'package:event_hub/features/profile/presentation/screens/organizer_profile_screen.dart';
 import 'package:event_hub/features/search/presentation/screens/search_screen.dart'
     show SearchScreen;
-import 'package:event_hub/models/category_model.dart';
-import 'package:event_hub/models/event_model.dart';
-import 'package:event_hub/models/organizer_model.dart';
-import 'package:event_hub/models/review_model.dart';
-import 'package:event_hub/services/ticketmaster_service.dart';
+import 'package:event_hub/model/entities/category_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
+import 'package:event_hub/model/entities/organizer_model.dart';
+import 'package:event_hub/model/entities/review_model.dart';
+import 'package:event_hub/model/network/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
 const _organizer = OrganizerModel(

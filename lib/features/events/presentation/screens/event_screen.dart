@@ -3,9 +3,9 @@ import 'package:event_hub/features/event_details/presentation/screens/event_deta
 import 'package:event_hub/features/events/presentation/screens/empty_events_state.dart';
 import 'package:event_hub/features/events/presentation/screens/event_tab_selector.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/category_chip.dart';
-import 'package:event_hub/models/category_model.dart';
-import 'package:event_hub/models/event_model.dart';
-import 'package:event_hub/services/ticketmaster_service.dart';
+import 'package:event_hub/model/entities/category_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
+import 'package:event_hub/model/network/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
 

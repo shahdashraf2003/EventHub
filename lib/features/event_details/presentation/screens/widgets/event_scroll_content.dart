@@ -1,5 +1,5 @@
 import 'package:event_hub/features/event_details/presentation/screens/widgets/event_details_app_bar.dart';
-import 'package:event_hub/models/event_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
 import 'package:event_hub/features/event_details/presentation/screens/widgets/going_avatars_row.dart';
 import 'package:event_hub/features/events/presentation/screens/event_info_row.dart';
 import 'package:flutter/material.dart';

@@ -1,9 +1,9 @@
 import 'package:event_hub/features/filter/pressentation/screens/widgets/filter_time_chip.dart';
 import 'package:event_hub/features/search/presentation/screens/widgets/filter_category_button.dart';
-import 'package:event_hub/models/category_model.dart';
+import 'package:event_hub/model/entities/category_model.dart';
+import 'package:event_hub/model/network/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
-import 'package:event_hub/services/ticketmaster_service.dart';
 
 class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});

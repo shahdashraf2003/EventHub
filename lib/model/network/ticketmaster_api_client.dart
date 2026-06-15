@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:event_hub/core/config/api_config.dart';
+import 'package:event_hub/model/network/api_constatnts.dart';
 
 class TicketmasterApiClient {
   TicketmasterApiClient._() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConfig.ticketmasterBaseUrl,
+        baseUrl: ApiConstants.ticketmasterBaseUrl,
         queryParameters: {
-          'apikey': ApiConfig.ticketmasterApiKey,
+          'apikey': ApiConstants.ticketmasterApiKey,
           'locale': 'en-us',
         },
         connectTimeout: const Duration(seconds: 10),

@@ -1,5 +1,5 @@
 import 'package:event_hub/features/profile/presentation/screens/widgets/review_card.dart';
-import 'package:event_hub/models/review_model.dart';
+import 'package:event_hub/model/entities/review_model.dart';
 import 'package:flutter/material.dart';
 
 class ReviewsTabView extends StatelessWidget {

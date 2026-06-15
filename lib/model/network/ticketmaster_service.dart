@@ -1,7 +1,7 @@
-import 'package:event_hub/core/network/ticketmaster_api_client.dart';
-import 'package:event_hub/models/category_model.dart';
-import 'package:event_hub/models/event_model.dart';
-import 'package:event_hub/models/ticketmaster_category_model.dart';
+import 'package:event_hub/model/network/ticketmaster_api_client.dart';
+import 'package:event_hub/model/entities/category_model.dart';
+import 'package:event_hub/model/entities/ticketmaster_category_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
 
 class TicketmasterService {
   TicketmasterService._();

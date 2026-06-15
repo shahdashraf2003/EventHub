@@ -1,4 +1,4 @@
-import 'package:event_hub/models/category_model.dart';
+import 'package:event_hub/model/entities/category_model.dart';
 import 'package:flutter/material.dart';
 
 class CategoryChip extends StatelessWidget {

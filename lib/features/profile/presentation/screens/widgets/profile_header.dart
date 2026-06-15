@@ -1,6 +1,6 @@
 import 'package:event_hub/core/app_colors.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/profile_action_button.dart';
-import 'package:event_hub/models/organizer_model.dart';
+import 'package:event_hub/model/entities/organizer_model.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHeader extends StatelessWidget {

@@ -5,9 +5,9 @@ import 'package:event_hub/features/profile/presentation/screens/widgets/event_ta
 import 'package:event_hub/features/profile/presentation/screens/widgets/profile_header.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/profile_tab_bar.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/reviews_tab_view.dart';
-import 'package:event_hub/models/event_model.dart';
-import 'package:event_hub/models/organizer_model.dart';
-import 'package:event_hub/models/review_model.dart';
+import 'package:event_hub/model/entities/event_model.dart';
+import 'package:event_hub/model/entities/organizer_model.dart';
+import 'package:event_hub/model/entities/review_model.dart';
 import 'package:flutter/material.dart';
 
 class OrganizerProfileScreen extends StatefulWidget {
