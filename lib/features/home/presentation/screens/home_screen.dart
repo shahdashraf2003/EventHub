@@ -114,21 +114,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Loads upcoming events using endpoint 1.
-  /// When a category chip is selected, [classificationId] is forwarded.
   Future<void> _loadEvents({String? classificationId}) async {
     setState(() {
       _loadingEvents = true;
       _eventsError = null;
     });
     try {
-      // Upcoming: page 0  (endpoint 1 — sort=date,asc)
       final upcoming = await _service.getUpcomingEvents(
         city: _city,
         page: 0,
         classificationId: classificationId,
       );
-      // Nearby: page 1 (same endpoint, next page)
       final nearby = await _service.getUpcomingEvents(
         city: _city,
         page: 1,
@@ -154,7 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onCategorySelected(int index) {
     if (index == _selectedCategoryIndex) return;
     setState(() => _selectedCategoryIndex = index);
-    // Derive classificationId from the selected category and reload
     final catId = index < _categories.length ? _categories[index].id : null;
     _loadEvents(classificationId: catId);
   }
@@ -224,13 +219,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 14),
                     HomeSearchBar(
-                      onFilterTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FilterBottomSheet(),
-                          ),
-                        );
+                      onFilterTap: () async {
+                        final catId = await FilterBottomSheet.show(context);
+                        if (catId != null) {
+                          final idx = _categories.indexWhere((c) => c.id == catId);
+                          if (idx >= 0) {
+                            _onCategorySelected(idx);
+                          }
+                        }
                       },
                       onChanged: (value) {
                         Navigator.push(

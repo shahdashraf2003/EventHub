@@ -8,12 +8,7 @@ import 'package:event_hub/models/event_model.dart';
 import 'package:event_hub/services/ticketmaster_service.dart';
 import 'package:flutter/material.dart';
 
-final List<CategoryModel> _filterCategories = [
-  CategoryModel(label: 'Music',  emoji: '🎵', color: const Color(0xFF5669FF)),
-  CategoryModel(label: 'Art',    emoji: '🎨', color: const Color(0xFF4CAF50)),
-  CategoryModel(label: 'Sports', emoji: '🏀', color: const Color(0xFFFF6B6B)),
-  CategoryModel(label: 'Tech',   emoji: '💻', color: const Color(0xFF9C27B0)),
-];
+
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -25,36 +20,62 @@ class EventsScreen extends StatefulWidget {
 class _EventsScreenState extends State<EventsScreen> {
   final _service = TicketmasterService.instance;
   int _selectedTab = 0;
+  int _selectedCategoryIndex = -1;
 
+  List<CategoryModel> _categories = [];
   List<EventModel> _events = [];
-  bool _loading = true;
+  bool _loadingEvents = true;
+  bool _loadingCategories = true;
   String? _error;
   static const String _city = 'New York';
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     _loadEvents();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final cats = await _service.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = cats;
+          _loadingCategories = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingCategories = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadEvents() async {
     setState(() {
-      _loading = true;
+      _loadingEvents = true;
       _error   = null;
     });
     try {
       final List<EventModel> events;
-
-      if (_selectedTab == 0) {
-        events = await _service.getUpcomingEvents(city: _city, page: 0);
-      } else {
-        events = await _service.getPastEvents(city: _city);
+      String? classificationId;
+      if (_selectedCategoryIndex >= 0 && _selectedCategoryIndex < _categories.length) {
+        classificationId = _categories[_selectedCategoryIndex].id;
       }
 
-      if (mounted) setState(() { _events = events; _loading = false; });
+      if (_selectedTab == 0) {
+        events = await _service.getUpcomingEvents(city: _city, page: 0, classificationId: classificationId);
+      } else {
+        events = await _service.getPastEvents(city: _city, classificationId: classificationId);
+      }
+
+      if (mounted) setState(() { _events = events; _loadingEvents = false; });
     } catch (e) {
       if (mounted) {
-        setState(() { _error = 'Failed to load events. Tap retry.'; _loading = false; });
+        setState(() { _error = 'Failed to load events. Tap retry.'; _loadingEvents = false; });
       }
     }
   }
@@ -96,15 +117,21 @@ class _EventsScreenState extends State<EventsScreen> {
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: CategoryChipList(
-              categories: _filterCategories,
-              onSelected: (_) {
-              
-              },
+          if (!_loadingCategories && _categories.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: CategoryChipList(
+                categories: _categories,
+                onSelected: (index) {
+                  if (_selectedCategoryIndex == index) {
+                    setState(() => _selectedCategoryIndex = -1);
+                  } else {
+                    setState(() => _selectedCategoryIndex = index);
+                  }
+                  _loadEvents();
+                },
+              ),
             ),
-          ),
 
           Expanded(child: _buildBody()),
         ],
@@ -113,7 +140,7 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Widget _buildBody() {
-    if (_loading) {
+    if (_loadingEvents) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFF5669FF)),
       );

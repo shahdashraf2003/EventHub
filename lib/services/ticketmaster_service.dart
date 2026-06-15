@@ -55,6 +55,7 @@ class TicketmasterService {
   Future<List<EventModel>> getPastEvents({
     String city = 'New York',
     String? endDate,
+    String? classificationId,
   }) async {
     final cutoff = endDate ??
         '${DateTime.now().toUtc().toIso8601String().substring(0, 10)}T00:00:00Z';
@@ -64,6 +65,7 @@ class TicketmasterService {
       endDateTime: cutoff,
       sort: 'date,desc',
       size: 20,
+      classificationId: classificationId,
     );
     return _parseEvents(data);
   }
@@ -93,10 +95,12 @@ class TicketmasterService {
 
   Future<List<EventModel>> searchByKeyword({
     required String keyword,
+    String? classificationId,
     int size = 20,
   }) async {
     final data = await _client.fetchEvents(
       keyword: keyword,
+      classificationId: classificationId,
       size: size,
     );
     return _parseEvents(data);

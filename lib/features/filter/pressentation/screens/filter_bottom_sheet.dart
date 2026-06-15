@@ -3,18 +3,12 @@ import 'package:event_hub/features/search/presentation/screens/widgets/filter_ca
 import 'package:event_hub/models/category_model.dart';
 import 'package:flutter/material.dart';
 
-final _filterCategories = [
-  CategoryModel(label: 'Music',  emoji: '🎵'),
-  CategoryModel(label: 'Sports', emoji: '🏀'),
-  CategoryModel(label: 'Food',   emoji: '🍽️'),
-  CategoryModel(label: 'Art',    emoji: '🎨'),
-  CategoryModel(label: 'Tech',   emoji: '💻'),
-];
+import 'package:event_hub/services/ticketmaster_service.dart';
 
 class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});
 
-  static Future<void> show(BuildContext context) {
+  static Future<String?> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -28,11 +22,38 @@ class FilterBottomSheet extends StatefulWidget {
 }
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
-  int _selectedCategory = 2; 
+  int _selectedCategory = -1; 
   int _selectedTime = 1;     
   RangeValues _priceRange = const RangeValues(20, 120);
 
   static const _timeLabels = ['Today', 'Tomorrow', 'This week'];
+
+  List<CategoryModel> _categories = [];
+  bool _loadingCategories = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final cats = await TicketmasterService.instance.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = cats;
+          _loadingCategories = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingCategories = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,19 +92,27 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               ),
           
               const SizedBox(height: 20),
-              SizedBox(
-                height: 80,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _filterCategories.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 16),
-                  itemBuilder: (_, i) => FilterCategoryButton(
-                    category: _filterCategories[i],
-                    isSelected: _selectedCategory == i,
-                    onTap: () => setState(() => _selectedCategory = i),
+              if (_loadingCategories)
+                const SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFF5669FF)),
+                  ),
+                )
+              else if (_categories.isNotEmpty)
+                SizedBox(
+                  height: 80,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _categories.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 16),
+                    itemBuilder: (_, i) => FilterCategoryButton(
+                      category: _categories[i],
+                      isSelected: _selectedCategory == i,
+                      onTap: () => setState(() => _selectedCategory = i),
+                    ),
                   ),
                 ),
-              ),
           
               const SizedBox(height: 24),
               const Text(
@@ -213,7 +242,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     child: OutlinedButton(
                       onPressed: () {
                         setState(() {
-                          _selectedCategory = 0;
+                          _selectedCategory = -1;
                           _selectedTime = 0;
                           _priceRange = const RangeValues(20, 120);
                         });
@@ -239,7 +268,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        String? selectedClassificationId;
+                        if (_selectedCategory >= 0 && _selectedCategory < _categories.length) {
+                          selectedClassificationId = _categories[_selectedCategory].id;
+                        }
+                        Navigator.pop(context, selectedClassificationId);
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5669FF),
                         shape: RoundedRectangleBorder(

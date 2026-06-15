@@ -25,6 +25,7 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _hasSearched          = false;
   String? _error;
   Timer? _debounce;
+  String? _selectedClassificationId;
 
   @override
   void initState() {
@@ -42,7 +43,10 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _browseFeatured() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final results = await _service.getUpcomingEvents(city: 'New York');
+      final results = await _service.getUpcomingEvents(
+        city: 'New York',
+        classificationId: _selectedClassificationId,
+      );
       if (mounted) {
         setState(() {
           _results      = results;
@@ -59,8 +63,14 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final results = keyword.isEmpty
-          ? await _service.getUpcomingEvents(city: 'New York')
-          : await _service.searchByKeyword(keyword: keyword);
+          ? await _service.getUpcomingEvents(
+              city: 'New York',
+              classificationId: _selectedClassificationId,
+            )
+          : await _service.searchByKeyword(
+              keyword: keyword,
+              classificationId: _selectedClassificationId,
+            );
 
       if (mounted) {
         setState(() {
@@ -111,7 +121,15 @@ class _SearchScreenState extends State<SearchScreen> {
             child: SearchInputBar(
               controller: _controller,
               onChanged: _onSearch,
-              onFilterTap: () => FilterBottomSheet.show(context),
+              onFilterTap: () async {
+                final classificationId = await FilterBottomSheet.show(context);
+                if (classificationId != null || _selectedClassificationId != null) {
+                  setState(() {
+                    _selectedClassificationId = classificationId;
+                  });
+                  _searchByKeyword(_controller.text.trim());
+                }
+              },
             ),
           ),
 
