@@ -27,7 +27,7 @@ class EventModel {
     required this.title,
     required this.date,
     required this.day,
-    this.month = '',
+    required this.month,
     required this.time,
     this.dateTimeRaw = '',
     required this.location,
@@ -68,6 +68,7 @@ class EventModel {
         final m = int.tryParse(parts[1]) ?? 0;
         monthStr     = (m > 0 && m < 13) ? monthNames[m] : '';
         formattedDate = '$monthStr $dayStr, ${parts[0]}';
+        print('day=$dayStr | month=$monthStr | date=$formattedDate');
       }
     }
 

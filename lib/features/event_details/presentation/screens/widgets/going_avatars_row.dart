@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class GoingAvatarsRow extends StatelessWidget {
   final List<String> avatarAssets;
-  final int totalCount;
+  final double totalCount;
   final VoidCallback onInvite;
 
   const GoingAvatarsRow({
@@ -42,7 +42,7 @@ class GoingAvatarsRow extends StatelessWidget {
         const SizedBox(width: 8),
 
         Text(
-          "+$totalCount Going",
+          "\$${totalCount.toStringAsFixed(0)}",
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

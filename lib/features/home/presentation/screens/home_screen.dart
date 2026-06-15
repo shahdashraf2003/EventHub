@@ -33,6 +33,7 @@ const _profileEvents = [
     id: 'p1',
     title: 'A virtual evening of smooth jazz',
     day: '1',
+    month: 'MAY',
     date: '1ST MAY • SAT • 2:00 PM',
     location: 'Jazz Hall, New York',
     goingCount: 0,
@@ -91,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadCategories();
-    // Endpoint 1: /events.json?city=New York&sort=date,asc&size=20&page=0
     _loadEvents();
   }
 
@@ -148,15 +148,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onCategorySelected(int index) {
-    if (index == _selectedCategoryIndex) {
-      setState(() => _selectedCategoryIndex = -1);
-      _loadEvents(classificationId: null);
-    } else {
-      setState(() => _selectedCategoryIndex = index);
-      final catId = index < _categories.length ? _categories[index].id : null;
-      _loadEvents(classificationId: catId);
-    }
+      final catId = _categories[index].id;
+  print('DEBUG category selected: name=${_categories[index].label}, id=$catId');
+
+  if (index == _selectedCategoryIndex) {
+    setState(() => _selectedCategoryIndex = -1);
+    _loadEvents(classificationId: null);
+  } else {
+    setState(() => _selectedCategoryIndex = index);
+    final catId = (index >= 0 && index < _categories.length)
+        ? _categories[index].id
+        : null;
+    _loadEvents(
+      classificationId: (catId != null && catId.isNotEmpty) ? catId : null,
+    );
   }
+}
 
   void _onNavTap(int index) {
     if (index == _navIndex) return;

@@ -23,7 +23,7 @@ class EventScrollContent extends StatelessWidget {
               children: [
                 GoingAvatarsRow(
                   avatarAssets: event.goingAvatars,
-                  totalCount: event.goingCount,
+                  totalCount:  event.ticketPrice,
                   onInvite: () {},
                 ),
 

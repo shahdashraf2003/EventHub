@@ -1,7 +1,12 @@
 import 'package:event_hub/models/event_model.dart';
 import 'package:flutter/material.dart';
 
-Widget _eventImage(String src, {double? height, double? width, BoxFit fit = BoxFit.cover}) {
+Widget _eventImage(
+  String src, {
+  double? height,
+  double? width,
+  BoxFit fit = BoxFit.cover,
+}) {
   const placeholder = ColoredBox(color: Color(0xFFEEEEEE));
   if (src.startsWith('http')) {
     return Image.network(
@@ -9,9 +14,11 @@ Widget _eventImage(String src, {double? height, double? width, BoxFit fit = BoxF
       height: height,
       width: width,
       fit: fit,
-      errorBuilder: (ctx, err, stack) => SizedBox(height: height, width: width, child: placeholder),
-      loadingBuilder: (ctx, child, progress) =>
-          progress == null ? child : SizedBox(height: height, width: width, child: placeholder),
+      errorBuilder: (ctx, err, stack) =>
+          SizedBox(height: height, width: width, child: placeholder),
+      loadingBuilder: (ctx, child, progress) => progress == null
+          ? child
+          : SizedBox(height: height, width: width, child: placeholder),
     );
   }
   if (src.isNotEmpty) {
@@ -20,7 +27,8 @@ Widget _eventImage(String src, {double? height, double? width, BoxFit fit = BoxF
       height: height,
       width: width,
       fit: fit,
-      errorBuilder: (ctx, err, stack) => SizedBox(height: height, width: width, child: placeholder),
+      errorBuilder: (ctx, err, stack) =>
+          SizedBox(height: height, width: width, child: placeholder),
     );
   }
   return SizedBox(height: height, width: width, child: placeholder);
@@ -53,17 +61,24 @@ class EventCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: Stack(
                 children: [
-                  _eventImage(event.coverImage, height: 130, width: double.infinity),
+                  _eventImage(
+                    event.coverImage,
+                    height: 130,
+                    width: double.infinity,
+                  ),
                   Positioned(
                     top: 10,
                     left: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
@@ -79,7 +94,7 @@ class EventCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            event.date,
+                            event.month,
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -101,8 +116,11 @@ class EventCard extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.bookmark_border,
-                          size: 16, color: Color(0xFF888888)),
+                      child: const Icon(
+                        Icons.bookmark_border,
+                        size: 16,
+                        color: Color(0xFF888888),
+                      ),
                     ),
                   ),
                 ],
@@ -130,7 +148,9 @@ class EventCard extends StatelessWidget {
                       _StackedAvatars(assets: event.goingAvatars),
                       const SizedBox(width: 6),
                       Text(
-                        "+${event.goingCount} Going",
+                        event.ticketPrice > 0
+                            ? 'From \$${event.ticketPrice.toStringAsFixed(0)}'
+                            : 'Free',
                         style: const TextStyle(
                           fontSize: 11,
                           color: Color(0xFF666666),
@@ -142,8 +162,11 @@ class EventCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 13, color: Color(0xFF888888)),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 13,
+                        color: Color(0xFF888888),
+                      ),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
@@ -219,10 +242,8 @@ class EventCardList extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: events.length,
         separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (_, i) => EventCard(
-          event: events[i],
-          onTap: () => onEventTap(events[i]),
-        ),
+        itemBuilder: (_, i) =>
+            EventCard(event: events[i], onTap: () => onEventTap(events[i])),
       ),
     );
   }

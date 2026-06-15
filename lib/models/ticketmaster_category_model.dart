@@ -19,6 +19,7 @@ class TicketmasterCategory {
     final meta = _segmentMeta[name] ??
         _segmentMeta.values.last; 
     return CategoryModel(
+      id: id,
       label: name,
       emoji: meta.$1,
       color: meta.$2,
