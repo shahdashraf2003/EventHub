@@ -45,15 +45,9 @@ class EventDetailsAppBar extends StatelessWidget {
           ),
         ),
       ],
-      title: const Text(
-        "Event Details",
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+     
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.asset(
+        background: Image.network(
           event.coverImage,
           fit: BoxFit.cover,
         ),

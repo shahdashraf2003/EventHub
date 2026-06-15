@@ -122,6 +122,7 @@ class _EventsScreenState extends State<EventsScreen> {
               padding: const EdgeInsets.only(bottom: 12),
               child: CategoryChipList(
                 categories: _categories,
+                selectedIndex: _selectedCategoryIndex,
                 onSelected: (index) {
                   if (_selectedCategoryIndex == index) {
                     setState(() => _selectedCategoryIndex = -1);

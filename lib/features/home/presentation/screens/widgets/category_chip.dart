@@ -53,22 +53,17 @@ class CategoryChip extends StatelessWidget {
   }
 }
 
-class CategoryChipList extends StatefulWidget {
+class CategoryChipList extends StatelessWidget {
   final List<CategoryModel> categories;
   final ValueChanged<int> onSelected;
+  final int selectedIndex;
 
   const CategoryChipList({
     super.key,
     required this.categories,
     required this.onSelected,
+    required this.selectedIndex,
   });
-
-  @override
-  State<CategoryChipList> createState() => _CategoryChipListState();
-}
-
-class _CategoryChipListState extends State<CategoryChipList> {
-  int _selected = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -77,15 +72,12 @@ class _CategoryChipListState extends State<CategoryChipList> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: widget.categories.length,
+        itemCount: categories.length,
         separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (_, i) => CategoryChip(
-          category: widget.categories[i],
-          isSelected: _selected == i,
-          onTap: () {
-            setState(() => _selected = i);
-            widget.onSelected(i);
-          },
+          category: categories[i],
+          isSelected: selectedIndex == i,
+          onTap: () => onSelected(i),
         ),
       ),
     );

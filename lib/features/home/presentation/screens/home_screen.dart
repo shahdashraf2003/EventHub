@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingCategories = true;
   bool _loadingEvents = true;
   String? _eventsError;
-  int _selectedCategoryIndex = 0;
+  int _selectedCategoryIndex = -1;
 
   @override
   void initState() {
@@ -148,10 +148,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onCategorySelected(int index) {
-    if (index == _selectedCategoryIndex) return;
-    setState(() => _selectedCategoryIndex = index);
-    final catId = index < _categories.length ? _categories[index].id : null;
-    _loadEvents(classificationId: catId);
+    if (index == _selectedCategoryIndex) {
+      setState(() => _selectedCategoryIndex = -1);
+      _loadEvents(classificationId: null);
+    } else {
+      setState(() => _selectedCategoryIndex = index);
+      final catId = index < _categories.length ? _categories[index].id : null;
+      _loadEvents(classificationId: catId);
+    }
   }
 
   void _onNavTap(int index) {
@@ -223,8 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         final catId = await FilterBottomSheet.show(context);
                         if (catId != null) {
                           final idx = _categories.indexWhere((c) => c.id == catId);
-                          if (idx >= 0) {
-                            _onCategorySelected(idx);
+                          if (idx >= 0 && idx != _selectedCategoryIndex) {
+                            setState(() => _selectedCategoryIndex = idx);
+                            _loadEvents(classificationId: catId);
                           }
                         }
                       },
@@ -260,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   : CategoryChipList(
                       categories: _categories,
+                      selectedIndex: _selectedCategoryIndex,
                       onSelected: _onCategorySelected,
                     ),
             ),

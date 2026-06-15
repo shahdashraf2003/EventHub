@@ -65,11 +65,9 @@ class _SearchScreenState extends State<SearchScreen> {
       final results = keyword.isEmpty
           ? await _service.getUpcomingEvents(
               city: 'New York',
-              classificationId: _selectedClassificationId,
             )
           : await _service.searchByKeyword(
               keyword: keyword,
-              classificationId: _selectedClassificationId,
             );
 
       if (mounted) {
@@ -91,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onSearch(String query) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(const Duration(milliseconds: 800), () {
       _searchByKeyword(query.trim());
     });
   }

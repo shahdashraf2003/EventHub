@@ -70,4 +70,22 @@ class TicketmasterApiClient {
     );
     return response.data ?? {};
   }
+
+
+  Future<Map<String, dynamic>> fetchByKeyword({
+  required String keyword,
+  int size = 20,
+}) async {
+  final response = await _dio.get<Map<String, dynamic>>(
+    'events.json',
+    queryParameters: {
+      'keyword': keyword,
+      'size': size,
+    },
+  );
+  return response.data ?? {};
 }
+
+
+}
+

@@ -93,18 +93,16 @@ class TicketmasterService {
   }
 
 
-  Future<List<EventModel>> searchByKeyword({
-    required String keyword,
-    String? classificationId,
-    int size = 20,
-  }) async {
-    final data = await _client.fetchEvents(
-      keyword: keyword,
-      classificationId: classificationId,
-      size: size,
-    );
-    return _parseEvents(data);
-  }
+Future<List<EventModel>> searchByKeyword({
+  required String keyword,
+  int size = 20,
+}) async {
+  final data = await _client.fetchByKeyword( 
+    keyword: keyword,
+    size: size,
+  );
+  return _parseEvents(data);
+} 
 
 
   Future<List<EventModel>> getEvents({
