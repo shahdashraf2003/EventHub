@@ -1,3 +1,5 @@
+import 'package:event_hub/core/database/database_helper.dart';
+import 'package:event_hub/core/services/shared_prefs_service.dart';
 import 'package:event_hub/model/entities/event_model.dart';
 import 'package:flutter/material.dart';
 
@@ -109,19 +111,7 @@ class EventCard extends StatelessWidget {
                   Positioned(
                     top: 10,
                     right: 10,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.bookmark_border,
-                        size: 16,
-                        color: Color(0xFF888888),
-                      ),
-                    ),
+                    child: _BookmarkIcon(event: event),
                   ),
                 ],
               ),
@@ -185,6 +175,72 @@ class EventCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BookmarkIcon extends StatefulWidget {
+  final EventModel event;
+  const _BookmarkIcon({required this.event});
+  @override
+  State<_BookmarkIcon> createState() => _BookmarkIconState();
+}
+
+class _BookmarkIconState extends State<_BookmarkIcon> {
+  bool _isSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSaved();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BookmarkIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _checkSaved();
+  }
+
+  Future<void> _checkSaved() async {
+    final userId = SharedPrefsService.currentUserId;
+    if (userId == null) return;
+    final saved = await DatabaseHelper.instance.isEventSaved(widget.event.id, userId);
+    if (mounted && _isSaved != saved) setState(() => _isSaved = saved);
+  }
+
+  void _toggleSave() async {
+    final userId = SharedPrefsService.currentUserId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save events')),
+      );
+      return;
+    }
+    if (_isSaved) {
+      await DatabaseHelper.instance.removeEvent(widget.event.id, userId);
+    } else {
+      await DatabaseHelper.instance.saveEvent(widget.event, userId);
+    }
+    setState(() => _isSaved = !_isSaved);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggleSave,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          _isSaved ? Icons.bookmark : Icons.bookmark_border,
+          size: 16,
+          color: _isSaved ? const Color(0xFF5669FF) : const Color(0xFF888888),
         ),
       ),
     );

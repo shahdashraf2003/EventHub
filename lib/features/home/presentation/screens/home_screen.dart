@@ -361,7 +361,9 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (_) => EventDetailsScreen(event: event),
           ),
-        );
+        ).then((_) {
+          if (mounted) setState(() {});
+        });
       },
     );
   }
@@ -392,7 +394,9 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (_) => EventDetailsScreen(event: event),
           ),
-        );
+        ).then((_) {
+          if (mounted) setState(() {});
+        });
       },
     );
   }

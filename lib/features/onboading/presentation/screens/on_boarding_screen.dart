@@ -1,3 +1,4 @@
+import 'package:event_hub/core/services/shared_prefs_service.dart';
 import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/bottom_sheet.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/image_slider.dart';
@@ -37,11 +38,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   bool get isLastPage => _currentIndex == pages.length - 1;
 
-  void nextPage() {
+  void nextPage() async {
     if (isLastPage) {
-      Navigator.push(
+      await SharedPrefsService.setHasSeenOnboarding(true);
+      if (!mounted) return;
+      Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen()),
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
         );
     } else {
       _controller.nextPage(
@@ -51,10 +54,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void skip() {
-     Navigator.push(
+  void skip() async {
+     await SharedPrefsService.setHasSeenOnboarding(true);
+     if (!mounted) return;
+     Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen()),
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
         );
   }
 

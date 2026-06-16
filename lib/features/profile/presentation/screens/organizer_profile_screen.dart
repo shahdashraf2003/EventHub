@@ -1,5 +1,7 @@
 
 import 'package:event_hub/core/app_colors.dart';
+import 'package:event_hub/core/services/shared_prefs_service.dart';
+import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/about_tab_view.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/event_tab_view.dart';
 import 'package:event_hub/features/profile/presentation/screens/widgets/profile_header.dart';
@@ -44,8 +46,17 @@ class _OrganizerProfileScreenState extends State<OrganizerProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: AppColors.textDark),
-            onPressed: () {},
+            icon: const Icon(Icons.logout, color: AppColors.textDark),
+            onPressed: () async {
+              await SharedPrefsService.setLoggedIn(false);
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignInScreen()),
+                  (route) => false,
+                );
+              }
+            },
           ),
         ],
       ),

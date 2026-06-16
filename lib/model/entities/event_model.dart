@@ -166,4 +166,58 @@ class EventModel {
       url:            url,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date,
+      'day': day,
+      'month': month,
+      'time': time,
+      'dateTimeRaw': dateTimeRaw,
+      'location': location,
+      'address': address,
+      'city': city,
+      'state': state,
+      'organizer': organizer,
+      'organizerImage': organizerImage,
+      'coverImage': coverImage,
+      'about': about,
+      'description': description,
+      'ticketPrice': ticketPrice,
+      'currency': currency,
+      'goingCount': goingCount,
+      'goingAvatars': goingAvatars.join(','), // Assuming simple comma separation for now
+      'classification': classification,
+      'url': url,
+    };
+  }
+
+  factory EventModel.fromMap(Map<String, dynamic> map) {
+    return EventModel(
+      id: map['id'] as String? ?? '',
+      title: map['title'] as String? ?? '',
+      date: map['date'] as String? ?? '',
+      day: map['day'] as String? ?? '',
+      month: map['month'] as String? ?? '',
+      time: map['time'] as String? ?? '',
+      dateTimeRaw: map['dateTimeRaw'] as String? ?? '',
+      location: map['location'] as String? ?? '',
+      address: map['address'] as String? ?? '',
+      city: map['city'] as String? ?? '',
+      state: map['state'] as String? ?? '',
+      organizer: map['organizer'] as String? ?? '',
+      organizerImage: map['organizerImage'] as String? ?? '',
+      coverImage: map['coverImage'] as String? ?? '',
+      about: map['about'] as String? ?? '',
+      description: map['description'] as String? ?? '',
+      ticketPrice: (map['ticketPrice'] as num?)?.toDouble() ?? 0.0,
+      currency: map['currency'] as String? ?? 'USD',
+      goingCount: map['goingCount'] as int? ?? 0,
+      goingAvatars: (map['goingAvatars'] as String?)?.split(',').where((e) => e.isNotEmpty).toList() ?? [],
+      classification: map['classification'] as String? ?? '',
+      url: map['url'] as String? ?? '',
+    );
+  }
 }

@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:event_hub/core/services/shared_prefs_service.dart';
+import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
+import 'package:event_hub/features/home/presentation/screens/home_screen.dart';
 import 'package:event_hub/features/onboading/presentation/screens/on_boarding_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -45,10 +48,22 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(
       const Duration(seconds: 3),
       () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OnboardingScreen()),
-        );
+        if (SharedPrefsService.isLoggedIn) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        } else if (SharedPrefsService.hasSeenOnboarding) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+          );
+        }
       },
     );
   }
