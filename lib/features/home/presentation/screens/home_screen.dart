@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   if (index == _selectedCategoryIndex) {
     setState(() => _selectedCategoryIndex = -1);
-    _loadEvents(classificationId: null);
+   _loadEvents(classificationId: null);
   } else {
     setState(() => _selectedCategoryIndex = index);
     final catId = (index >= 0 && index < _categories.length)
