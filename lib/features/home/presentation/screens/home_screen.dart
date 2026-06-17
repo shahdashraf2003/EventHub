@@ -1,6 +1,7 @@
 import 'package:event_hub/features/event_details/presentation/screens/event_details_screen.dart';
 import 'package:event_hub/features/events/presentation/screens/event_screen.dart';
 import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart';
+import 'package:event_hub/features/home/presentation/cubit/home_cubit.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/category_chip.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/event_card.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/home_app_bar.dart';
@@ -9,14 +10,14 @@ import 'package:event_hub/features/home/presentation/screens/widgets/home_search
 import 'package:event_hub/features/home/presentation/screens/widgets/invite_friends_banner.dart';
 import 'package:event_hub/features/home/presentation/screens/widgets/section_header.dart';
 import 'package:event_hub/features/profile/presentation/screens/organizer_profile_screen.dart';
-import 'package:event_hub/features/search/presentation/screens/search_screen.dart'
-    show SearchScreen;
-import 'package:event_hub/model/entities/category_model.dart';
+import 'package:event_hub/features/search/presentation/screens/search_screen.dart' show SearchScreen;
 import 'package:event_hub/model/entities/event_model.dart';
 import 'package:event_hub/model/entities/organizer_model.dart';
 import 'package:event_hub/model/entities/review_model.dart';
-import 'package:event_hub/model/network/ticketmaster_service.dart';
+import 'package:event_hub/model/repositories/ticketmaster_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:event_hub/features/map/presentation/screens/map_screen.dart'; // We will create this
 
 const _organizer = OrganizerModel(
   name: 'David Silbia',
@@ -66,107 +67,39 @@ const _profileReviews = [
   ),
 ];
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _navIndex = 0;
-
-  final _service = TicketmasterService.instance;
-
-  final String _city = 'New York';
-
-  List<CategoryModel> _categories = [];
-  List<EventModel> _upcomingEvents = [];
-  List<EventModel> _nearbyEvents = [];
-  bool _loadingCategories = true;
-  bool _loadingEvents = true;
-  String? _eventsError;
-  int _selectedCategoryIndex = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCategories();
-    _loadEvents();
-  }
-
-  Future<void> _loadCategories() async {
-    try {
-      final cats = await _service.getCategories();
-      if (mounted) {
-        setState(() {
-          _categories = cats.isEmpty ? [] : cats;
-          _loadingCategories = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _categories = [];
-          _loadingCategories = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadEvents({String? classificationId}) async {
-    setState(() {
-      _loadingEvents = true;
-      _eventsError = null;
-    });
-    try {
-      final upcoming = await _service.getUpcomingEvents(
-        city: _city,
-        page: 0,
-        classificationId: classificationId,
-      );
-      final nearby = await _service.getUpcomingEvents(
-        city: _city,
-        page: 1,
-        classificationId: classificationId,
-      );
-      if (mounted) {
-        setState(() {
-          _upcomingEvents = upcoming;
-          _nearbyEvents   = nearby;
-          _loadingEvents  = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _eventsError   = 'Could not load events. Check your connection.';
-          _loadingEvents = false;
-        });
-      }
-    }
-  }
-
-  void _onCategorySelected(int index) {
-      final catId = _categories[index].id;
-  print('DEBUG category selected: name=${_categories[index].label}, id=$catId');
-
-  if (index == _selectedCategoryIndex) {
-    setState(() => _selectedCategoryIndex = -1);
-   _loadEvents(classificationId: null);
-  } else {
-    setState(() => _selectedCategoryIndex = index);
-    final catId = (index >= 0 && index < _categories.length)
-        ? _categories[index].id
-        : null;
-    _loadEvents(
-      classificationId: (catId != null && catId.isNotEmpty) ? catId : null,
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => HomeCubit(
+        context.read<TicketmasterRepository>(),
+      )..loadInitialData(),
+      child: const _HomeView(),
     );
   }
 }
 
-  void _onNavTap(int index) {
-    if (index == _navIndex) return;
+class _HomeView extends StatelessWidget {
+  const _HomeView();
+
+  void _onCategorySelected(BuildContext context, int index) {
+    final state = context.read<HomeCubit>().state;
+    if (index >= 0 && index < state.categories.length) {
+      final category = state.categories[index];
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EventsScreen(initialCategory: category),
+        ),
+      );
+    }
+  }
+
+  void _onNavTap(BuildContext context, int index) {
+    final cubit = context.read<HomeCubit>();
+    if (index == cubit.state.navIndex) return;
 
     switch (index) {
       case 3:
@@ -179,155 +112,151 @@ class _HomeScreenState extends State<HomeScreen> {
               reviews: _profileReviews,
             ),
           ),
-        ).then((_) => setState(() => _navIndex = 0));
+        ).then((_) => cubit.changeNavIndex(0));
         return;
-
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MapScreen()),
+        ).then((_) => cubit.changeNavIndex(0));
+        return;
       case 1:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const EventsScreen()),
-        ).then((_) => setState(() => _navIndex = 0));
+        ).then((_) => cubit.changeNavIndex(0));
         return;
     }
 
-    setState(() => _navIndex = index);
+    cubit.changeNavIndex(index);
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      bottomNavigationBar: HomeBottomNavBar(
-        currentIndex: _navIndex,
-        onTap: _onNavTap,
-      ),
-      body: RefreshIndicator(
-        color: const Color(0xFF5669FF),
-        onRefresh: () async {
-          await Future.wait([_loadCategories(), _loadEvents()]);
+      bottomNavigationBar: BlocBuilder<HomeCubit, HomeState>(
+        buildWhen: (p, c) => p.navIndex != c.navIndex,
+        builder: (context, state) {
+          return HomeBottomNavBar(
+            currentIndex: state.navIndex,
+            onTap: (index) => _onNavTap(context, index),
+          );
         },
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF5669FF),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
+      ),
+      body: BlocBuilder<HomeCubit, HomeState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            color: const Color(0xFF5669FF),
+            onRefresh: () async {
+              context.read<HomeCubit>().refreshData();
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF5669FF),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(28),
+                        bottomRight: Radius.circular(28),
+                      ),
+                    ),
+                    padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                    child: Column(
+                      children: [
+                        HomeAppBar(
+                          location: 'New York, USA',
+                          onMenuTap: () {},
+                          onNotificationTap: () {},
+                        ),
+                        const SizedBox(height: 14),
+                        HomeSearchBar(
+                          onFilterTap: () async {
+                            final catId = await FilterBottomSheet.show(context);
+                            if (catId != null) {
+                              context.read<HomeCubit>().loadEvents(classificationId: catId);
+                            }
+                          },
+                          onChanged: (value) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SearchScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                padding:
-                    const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                child: Column(
-                  children: [
-                    HomeAppBar(
-                      location: 'New York, USA',
-                      onMenuTap: () {},
-                      onNotificationTap: () {},
-                    ),
-                    const SizedBox(height: 14),
-                    HomeSearchBar(
-                      onFilterTap: () async {
-                        final catId = await FilterBottomSheet.show(context);
-                        if (catId != null) {
-                          final idx = _categories.indexWhere((c) => c.id == catId);
-                          if (idx >= 0 && idx != _selectedCategoryIndex) {
-                            setState(() => _selectedCategoryIndex = idx);
-                            _loadEvents(classificationId: catId);
-                          }
-                        }
-                      },
-                      onChanged: (value) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SearchScreen(),
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                SliverToBoxAdapter(
+                  child: state.categoriesStatus == HomeDataStatus.loading
+                      ? const SizedBox(
+                          height: 42,
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF5669FF),
+                              ),
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            SliverToBoxAdapter(
-              child: _loadingCategories
-                  ? const SizedBox(
-                      height: 42,
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF5669FF),
-                          ),
+                        )
+                      : CategoryChipList(
+                          categories: state.categories,
+                          selectedIndex: state.selectedCategoryIndex,
+                          onSelected: (index) => _onCategorySelected(context, index),
                         ),
-                      ),
-                    )
-                  : CategoryChipList(
-                      categories: _categories,
-                      selectedIndex: _selectedCategoryIndex,
-                      onSelected: _onCategorySelected,
-                    ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                SliverToBoxAdapter(
+                  child: SectionHeader(
+                    title: 'Upcoming Events',
+                    onSeeAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EventsScreen()),
+                      );
+                    },
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                SliverToBoxAdapter(child: _buildUpcomingSection(context, state)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                SliverToBoxAdapter(
+                  child: InviteFriendsBanner(onInvite: () {}),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                SliverToBoxAdapter(
+                  child: SectionHeader(
+                    title: 'Nearby You',
+                    onSeeAll: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EventsScreen()),
+                      );
+                    },
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                SliverToBoxAdapter(child: _buildNearbySection(context, state)),
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'Upcoming Events',
-                onSeeAll: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EventsScreen()),
-                  );
-                },
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 14)),
-
-            SliverToBoxAdapter(child: _buildUpcomingSection()),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            SliverToBoxAdapter(
-              child: InviteFriendsBanner(onInvite: () {}),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'Nearby You',
-                onSeeAll: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EventsScreen()),
-                  );
-                },
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 14)),
-
-            SliverToBoxAdapter(child: _buildNearbySection()),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildUpcomingSection() {
-    if (_loadingEvents) {
+  Widget _buildUpcomingSection(BuildContext context, HomeState state) {
+    if (state.eventsStatus == HomeDataStatus.loading) {
       return const SizedBox(
         height: 240,
         child: Center(
@@ -335,16 +264,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    if (_eventsError != null) {
+    if (state.error != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Text(
-          _eventsError!,
+          state.error!,
           style: const TextStyle(color: Colors.redAccent, fontSize: 13),
         ),
       );
     }
-    if (_upcomingEvents.isEmpty) {
+    if (state.upcomingEvents.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Text(
@@ -354,22 +283,20 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     return EventCardList(
-      events: _upcomingEvents,
+      events: state.upcomingEvents,
       onEventTap: (event) {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => EventDetailsScreen(event: event),
           ),
-        ).then((_) {
-          if (mounted) setState(() {});
-        });
+        );
       },
     );
   }
 
-  Widget _buildNearbySection() {
-    if (_loadingEvents) {
+  Widget _buildNearbySection(BuildContext context, HomeState state) {
+    if (state.eventsStatus == HomeDataStatus.loading) {
       return const SizedBox(
         height: 100,
         child: Center(
@@ -377,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    if (_nearbyEvents.isEmpty) {
+    if (state.nearbyEvents.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Text(
@@ -387,16 +314,14 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     return EventCardList(
-      events: _nearbyEvents,
+      events: state.nearbyEvents,
       onEventTap: (event) {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => EventDetailsScreen(event: event),
           ),
-        ).then((_) {
-          if (mounted) setState(() {});
-        });
+        );
       },
     );
   }

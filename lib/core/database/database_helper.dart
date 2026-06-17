@@ -1,7 +1,7 @@
 import 'package:event_hub/model/entities/event_model.dart';
 import 'package:event_hub/model/entities/user_model.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();

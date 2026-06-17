@@ -1,101 +1,81 @@
-import 'dart:async';
-import 'package:event_hub/core/services/shared_prefs_service.dart';
 import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
 import 'package:event_hub/features/home/presentation/screens/home_screen.dart';
 import 'package:event_hub/features/onboading/presentation/screens/on_boarding_screen.dart';
+import 'package:event_hub/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => SplashCubit()..checkNavigation(),
+      child: const _SplashView(),
+    );
+  }
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+class _SplashView extends StatelessWidget {
+  const _SplashView();
 
   @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
-      ),
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(_controller);
-
-    _controller.forward();
-
-    Timer(
-      const Duration(seconds: 3),
-      () {
-        if (SharedPrefsService.isLoggedIn) {
+  Widget build(BuildContext context) {
+    return BlocListener<SplashCubit, SplashState>(
+      listener: (context, state) {
+        if (state == SplashState.navigateToHome) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
-        } else if (SharedPrefsService.hasSeenOnboarding) {
+        } else if (state == SplashState.navigateToSignIn) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const SignInScreen()),
           );
-        } else {
+        } else if (state == SplashState.navigateToOnboarding) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const OnboardingScreen()),
           );
         }
       },
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-             const SizedBox(height: 100),
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Image.asset(
-              'assets/images/logo.png',
-              width: 250,
-              height: 250,
-            ),
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 100),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.5, end: 1.0),
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeOutBack,
+                builder: (context, scaleValue, child) {
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.0, end: 1.0),
+                    duration: const Duration(seconds: 2),
+                    builder: (context, fadeValue, child) {
+                      return Opacity(
+                        opacity: fadeValue,
+                        child: Transform.scale(
+                          scale: scaleValue,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: child,
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 250,
+                  height: 250,
+                ),
+              ),
+            ],
           ),
         ),
-          ]
-      ),
       ),
     );
   }

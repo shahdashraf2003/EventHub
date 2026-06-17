@@ -1,6 +1,8 @@
 import 'package:event_hub/core/services/shared_prefs_service.dart';
 import 'package:event_hub/features/splash/presentation/screens/splash_screen.dart';
+import 'package:event_hub/model/repositories/ticketmaster_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,21 +15,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Event Hub',
-      theme: ThemeData(
-  useMaterial3: true,
-  scaffoldBackgroundColor: Colors.white,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: Colors.deepPurple,
-    surface: Colors.white,
-  ),
-  canvasColor: Colors.white,
-),
-       
-      
-      home: SplashScreen()
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<TicketmasterRepository>(
+          create: (context) => TicketmasterRepository(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Event Hub',
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: Colors.white,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple,
+            surface: Colors.white,
+          ),
+          canvasColor: Colors.white,
+        ),
+        home: const SplashScreen(),
+      ),
     );
   }
 }

@@ -15,7 +15,7 @@ class AuthTextField extends StatelessWidget {
     this.obscureText = false,
     this.showToggle = false,
     this.keyboardType = TextInputType.text,
-    this.controller,
+    this.controller, required void Function() onToggle,
   });
 
   @override

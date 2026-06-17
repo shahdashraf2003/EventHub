@@ -1,101 +1,32 @@
-import 'dart:async';
-
 import 'package:event_hub/core/widgets/events_list_tile.dart';
 import 'package:event_hub/features/event_details/presentation/screens/event_details_screen.dart';
 import 'package:event_hub/features/filter/pressentation/screens/filter_bottom_sheet.dart'
     show FilterBottomSheet;
+import 'package:event_hub/features/search/presentation/cubit/search_cubit.dart';
 import 'package:event_hub/features/search/presentation/screens/widgets/search_input_bar.dart';
-import 'package:event_hub/model/entities/event_model.dart';
-import 'package:event_hub/model/network/ticketmaster_service.dart';
+import 'package:event_hub/model/repositories/ticketmaster_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => SearchCubit(context.read<TicketmasterRepository>()),
+      child: const _SearchView(),
+    );
+  }
 }
 
-class _SearchScreenState extends State<SearchScreen> {
-  final _service    = TicketmasterService.instance;
-  final _controller = TextEditingController();
-
-  List<EventModel> _results  = [];
-  bool _loading              = false;
-  bool _hasSearched          = false;
-  String? _error;
-  Timer? _debounce;
-  String? _selectedClassificationId;
-
-  @override
-  void initState() {
-    super.initState();
-    _browseFeatured();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _debounce?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _browseFeatured() async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      final results = await _service.getUpcomingEvents(
-        city: 'New York',
-        classificationId: _selectedClassificationId,
-      );
-      if (mounted) {
-        setState(() {
-          _results      = results;
-          _loading      = false;
-          _hasSearched  = true;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() { _error = 'Could not load events.'; _loading = false; });
-    }
-  }
-
-  Future<void> _searchByKeyword(String keyword) async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      final results = keyword.isEmpty
-          ? await _service.getUpcomingEvents(
-              city: 'New York',
-            )
-          : await _service.searchByKeyword(
-              keyword: keyword,
-            );
-
-      if (mounted) {
-        setState(() {
-          _results      = results;
-          _loading      = false;
-          _hasSearched  = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error   = 'Search failed. Please try again.';
-          _loading = false;
-        });
-      }
-    }
-  }
-
-  void _onSearch(String query) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 800), () {
-      _searchByKeyword(query.trim());
-    });
-  }
+class _SearchView extends StatelessWidget {
+  const _SearchView();
 
   @override
   Widget build(BuildContext context) {
+    final searchController = TextEditingController();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -111,56 +42,55 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-            child: SearchInputBar(
-              controller: _controller,
-              onChanged: _onSearch,
-              onFilterTap: () async {
-                final classificationId = await FilterBottomSheet.show(context);
-                if (classificationId != null || _selectedClassificationId != null) {
-                  setState(() {
-                    _selectedClassificationId = classificationId;
-                  });
-                  _searchByKeyword(_controller.text.trim());
-                }
-              },
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          Expanded(child: _buildBody()),
-        ],
+      body: BlocBuilder<SearchCubit, SearchState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: SearchInputBar(
+                  controller: searchController,
+                  onChanged: (query) => context.read<SearchCubit>().searchByKeyword(query),
+                  onFilterTap: () async {
+                    final classificationId = await FilterBottomSheet.show(context);
+                    if (classificationId != null || state.selectedClassificationId != null) {
+                      context.read<SearchCubit>().applyFilter(classificationId);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(child: _buildBody(context, state)),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_loading) {
+  Widget _buildBody(BuildContext context, SearchState state) {
+    if (state.isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFF5669FF)),
       );
     }
-    if (_error != null) {
+    if (state.error != null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
+            Text(state.error!, style: const TextStyle(color: Colors.redAccent, fontSize: 14)),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: () => _searchByKeyword(_controller.text.trim()),
+              onPressed: () => context.read<SearchCubit>().searchByKeyword(state.query),
               child: const Text('Retry'),
             ),
           ],
         ),
       );
     }
-    if (_hasSearched && _results.isEmpty) {
+    if (state.hasSearched && state.results.isEmpty) {
       return const Center(
         child: Text(
           'No events found',
@@ -170,13 +100,13 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _results.length,
+      itemCount: state.results.length,
       itemBuilder: (_, i) => EventListTile(
-        event: _results[i],
+        event: state.results[i],
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => EventDetailsScreen(event: _results[i]),
+            builder: (_) => EventDetailsScreen(event: state.results[i]),
           ),
         ),
       ),

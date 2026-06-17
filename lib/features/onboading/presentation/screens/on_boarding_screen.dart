@@ -1,21 +1,26 @@
-import 'package:event_hub/core/services/shared_prefs_service.dart';
 import 'package:event_hub/features/authentication/presentation/screens/signin_screen.dart';
+import 'package:event_hub/features/onboading/presentation/cubit/onboarding_cubit.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/bottom_sheet.dart';
 import 'package:event_hub/features/onboading/presentation/screens/widgets/image_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => OnboardingCubit(),
+      child: const _OnboardingView(),
+    );
+  }
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _controller = PageController();
-  int _currentIndex = 0;
+class _OnboardingView extends StatelessWidget {
+  const _OnboardingView();
 
-  final List<Map<String, String>> pages = [
+  static const List<Map<String, String>> pages = [
     {
       "title": "Explore Upcoming and Nearby Events",
       "desc":
@@ -36,60 +41,63 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
-  bool get isLastPage => _currentIndex == pages.length - 1;
-
-  void nextPage() async {
-    if (isLastPage) {
-      await SharedPrefsService.setHasSeenOnboarding(true);
-      if (!mounted) return;
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
-        );
-    } else {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void skip() async {
-     await SharedPrefsService.setHasSeenOnboarding(true);
-     if (!mounted) return;
-     Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
-        );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          const SizedBox(height: 100),
+    final PageController controller = PageController();
 
-          Expanded(
-            child: ImageSlider(
-              controller: _controller,
-              pages: pages,
-              onPageChanged: (i) => setState(() => _currentIndex = i),
-            ),
-          ),
+    return BlocListener<OnboardingCubit, OnboardingState>(
+      listener: (context, state) {
+        if (state.isCompleted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+        }
+      },
+      child: Scaffold(
+        body: BlocBuilder<OnboardingCubit, OnboardingState>(
+          builder: (context, state) {
+            final isLastPage = state.currentIndex == pages.length - 1;
 
-          BottomSheetContent(
-            title: pages[_currentIndex]["title"]!,
-            desc: pages[_currentIndex]["desc"]!,
-            controller: _controller,
-            isLastPage: isLastPage,
-            pagesCount: pages.length,
-            onNext: nextPage,
-            onSkip: skip,
-          ),
-        ],
+            void nextPage() {
+              if (isLastPage) {
+                context.read<OnboardingCubit>().completeOnboarding();
+              } else {
+                controller.nextPage(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                );
+              }
+            }
+
+            void skip() {
+              context.read<OnboardingCubit>().completeOnboarding();
+            }
+
+            return Column(
+              children: [
+                const SizedBox(height: 100),
+                Expanded(
+                  child: ImageSlider(
+                    controller: controller,
+                    pages: pages,
+                    onPageChanged: (i) => context.read<OnboardingCubit>().setPageIndex(i),
+                  ),
+                ),
+                BottomSheetContent(
+                  title: pages[state.currentIndex]["title"]!,
+                  desc: pages[state.currentIndex]["desc"]!,
+                  controller: controller,
+                  isLastPage: isLastPage,
+                  pagesCount: pages.length,
+                  onNext: nextPage,
+                  onSkip: skip,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
-
