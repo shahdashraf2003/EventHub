@@ -1,5 +1,6 @@
 import 'package:event_hub/core/widgets/blue_primary_button.dart';
 import 'package:event_hub/features/authentication/presentation/cubit/auth_cubit.dart';
+import 'package:event_hub/features/authentication/presentation/cubit/auth_state.dart';
 import 'package:event_hub/features/authentication/presentation/screens/signup_screen.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_redirect_text.dart';
 import 'package:event_hub/features/authentication/presentation/screens/widgets/auth_text_field.dart';
